@@ -79,7 +79,8 @@
         constructor(DW,DH){
             this.DW=DW;this.DH=DH;this.R=rng(2026);
             this.base=Math.floor(DH*.76);
-            this.S=Math.max(22,Math.min((this.base-14)/1.68,(DW-20)/3.3));this.cx=DW/2;
+            const pad=PHONE?2:20,z=PHONE?1.15:1;
+            this.S=Math.max(22,Math.min((this.base-14)/1.68,(DW-pad)/3.3*z));this.cx=DW/2;
             const N=DW*DH;this.zb=new Float32Array(N);this.R_=new Uint8Array(N);this.G_=new Uint8Array(N);this.B_=new Uint8Array(N);this.has=new Uint8Array(N);
             this.build();
         }
@@ -240,11 +241,12 @@
     }
 
     const cv=document.getElementById("c"),ctx=cv.getContext("2d"),$=id=>document.getElementById(id);
-    let scene,d,Wc,Hc,stars=[],started=false,paused=false,t=0,tStar=0,last=0,spans=[];
+    let scene,d,Wc,Hc,stars=[],started=false,paused=false,t=0,tStar=0,last=0,spans=[],PHONE=false;
     function setup(){
         const dpr=Math.min(window.devicePixelRatio||1,2);Wc=innerWidth;Hc=innerHeight;
         cv.width=Wc*dpr;cv.height=Hc*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
-        d=cl(Math.round(Hc/200),2,5);scene=new Scene(Math.floor(Wc/d),Math.floor(Hc/d));
+        PHONE=Math.min(Wc,Hc)<680;d=PHONE?3:cl(Math.round(Hc/200),2,5);
+        scene=new Scene(Math.floor(Wc/d),Math.floor(Hc/d));
         const R=rng(7),pal=[[255,255,255],[170,205,255],[110,160,255],[205,190,255]];stars=[];
         for(let i=0;i<Wc*Hc/7000;i++)stars.push([R()*Wc,R()*Hc,pal[R()*4|0],.25+R()*.75,.3+R()*5.2,.6+R()*1.8,R()*6.28,R()<.2?2:1]);
     }
@@ -267,7 +269,7 @@
         if(!started){tStar+=dt;drawStars(tStar+12)}
         else{
             if(!paused)t+=dt;drawStars(t);
-            const main=scene.frame(t),s=Math.max(1,Math.round(d*.82)),{touched,has,R_,G_,B_,DW}=scene;
+            const main=scene.frame(t),s=PHONE?d:Math.max(1,Math.round(d*.82)),{touched,has,R_,G_,B_,DW}=scene;
             for(const k of touched){if(has[k]!=1)continue;ctx.fillStyle=`rgb(${R_[k]},${G_[k]},${B_[k]})`;ctx.fillRect((k%DW)*d,((k/DW)|0)*d,s,s)}
             const mt=sm((t-36)/3);
             if(mt>0&&main){for(let i=0;i<26;i++){const r=rng(i*77+3),ox=(r()-.5)*1.6,oy=(r()-.5)*.6,vx=(r()-.5)*.06,vy=.05+r()*.07,life=7+r()*6,off=r()*13;
